@@ -29,7 +29,7 @@
 ##########################################################################
 
 MACFOUND_DIR=`dirname "${0}"`
-SOURCES_ROOT=`dirname "${MACFOUND_DIR}"`
+SOURCES_ROOT="${MACFOUND_DIR}/.."
 CSVKIT_DIR="${SOURCES_ROOT}/csvkit"
 DATA_DIR="${1}"
 if [ "${DATA_DIR}" = "" ]; then
@@ -43,7 +43,7 @@ if [ "${DATA_DIR}" = "" ]; then
 fi
 
 # Make sure we have csvkit.
-if [ ! -f "${CSVKIT_DIR}" ]; then
+if [ ! -d "${CSVKIT_DIR}" ]; then
   echo "ERROR: csvkit source tree not found."
   echo ""
   echo "Please do this..."
@@ -101,9 +101,6 @@ if [ ! -f "${CSV2WIKI_CONFIG}" ]; then
   echo ""
   exit 1
 fi
-
-SANITIZER="${MACFOUND_DIR}"/fix-csv
-SANITIZATION_PREFIX="sanitized-"
 
 MASTER_CSV="${DATA_DIR}/100andchangeExport-all-judges.csv"
 
@@ -217,14 +214,17 @@ MASTER_CSV="${DATA_DIR}/100andchangeExport-all-judges.csv"
 #
 # ...and create the partners' wiki.
 
-SANITIZED_CSV="`dirname ${RAW_CSV}`/${SANITIZATION_PREFIX}`basename ${RAW_CSV}`"
+RAW_CSV="100andchangeExport-all-judges.csv"
+
+SANITIZER="${MACFOUND_DIR}"/fix-csv
+SANITIZATION_PREFIX="sanitized-"
+SANITIZED_CSV="${SANITIZATION_PREFIX}${RAW_CSV}"
 
 # Sanitize the updated spreadsheet.
 #
 # Use --pare to convert only 1% of the entries, to save time while testing. 
 echo "Sanitizing..."
-
-${SANITIZER} --pare=100 "${RAW_CSV}" ${SANITIZED_CSV}
+${SANITIZER} --pare=100 "${DATA_DIR}/${RAW_CSV}" "${DATA_DIR}/${SANITIZED_CSV}"
 if [ $? -ne 0 ]; then
 		echo Sanitization failure!
 		exit 1
@@ -233,6 +233,6 @@ echo "Done sanitizing."
 echo ""
 
 echo "Creating wiki..."
-${CSV2WIKI} -c ${CSV2WIKI_CONFIG} ${SANITIZED_CSV}
+${CSV2WIKI} -c ${CSV2WIKI_CONFIG} "${DATA_DIR}/${SANITIZED_CSV}"
 echo "Done creating wiki."
 echo ""
