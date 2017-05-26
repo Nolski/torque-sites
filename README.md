@@ -43,7 +43,7 @@ serve as an example or a template for other similar efforts.
   csv2wiki.  It takes the data we received from MacArthur and cleans
   up the HTML.  Then, wiki-refresh runs csv2wiki on the proper html to
   produce mediawiki input.  The compose-csvs script should not emit
-  markdown-formatted text.
+  markdown-formatted text.  See `./compose-csvs` for usage information
 
 ## Dependencies
 

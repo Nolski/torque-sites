@@ -57,6 +57,14 @@ Command-line options:
 
   --pare N                      Reduce the nuber of tiems to 1/N rows, for quick
                                 testing and development
+
+  --overrides FILE              FILE which lists review numbers one to a line, prefixed
+                                by a '+' or a '-'.  Numbers that are prefixed by a '-',
+                                e.g. '-1234' will never be included in the output, and
+                                those that are prefixed by a '+' will be included
+                                regardless of paring settings. If you want *just* the
+                                items in overrides, set pare to a very high number.
+                                E.g., pare everything except the overrides list.
 """
 
 import csv
@@ -234,7 +242,8 @@ def wiki_escape_page_title(s):
     return s
 
 def compose_csvs(proposals, admin_review, judge_eval, extra_category_file,
-        attachments_file, attachments_dir, pare=None):
+        attachments_file, attachments_dir, pare=None,
+        always_include=None, never_include=None):
     """Write a composed version of PROPOSALS (a CSV file), ADMIN_REVIEW
     (a CSV file), and JUDGE_EVAL (a CSV file) to standard out.
 
@@ -249,7 +258,15 @@ def compose_csvs(proposals, admin_review, judge_eval, extra_category_file,
     ATTACHMENTS_DIR is the directory to look in for attachments.
 
     If PARE is not None, it is a positive integer indicating that only
-    1 of every PARE entries should be processed, and the others skipped."""
+    1 of every PARE entries should be processed, and the others skipped.
+
+    If ALWAYS_INCLUDE is not None, it is a list of review numbers to include
+    in our output, regardless of paring settings.  It's a good way to
+    make sure interesting rows get included in test runs.
+
+    If NEVER_INCLUDE is not None, it is a list of review numbers to never
+    include in our output, which is useful when there's broken proposals
+    that need to be omitted for whatever reason."""
     try:
         proposals_reader = csv.reader(open(proposals, encoding='utf-8'),
                                       delimiter=',', quotechar='"')
@@ -281,8 +298,13 @@ def compose_csvs(proposals, admin_review, judge_eval, extra_category_file,
             continue
 
         row_num += 1  # first row here is row 1 (the header row was row 0) 
-        if pare is not None and row_num % pare != 0:
+
+        if int(row[3]) in never_include:
             continue
+
+        if pare is not None and row_num % pare != 0:
+            if not int(row[3]) in always_include:
+                continue
 
         new_row = []
         num_fixed_cells = 0
@@ -354,7 +376,8 @@ def main():
                                     "judge-evaluation-csv=",
                                     "extra-category-file=",
                                     "attachments-file=",
-                                    "attachments-dir=",])
+                                    "attachments-dir=",
+                                    "overrides=",])
     except getopt.GetoptError as err:
         sys.stderr.write("ERROR: '%s'\n" % err)
         sys.exit(2)
@@ -366,8 +389,15 @@ def main():
     extra_category_file = None
     attachments_file = None
     attachments_dir = None
+    never_include = []
+    always_include = []
     for o, a in opts:
-        if o == "--pare":
+        if o in ("--overrides",):
+            with open(a) as INF:
+                overrides = [l.split(' ')[0] for l in INF.readlines() if l.strip()]
+                never_include = [ int(n[1:]) for n in overrides if n[0] == '-' ]
+                always_include = [ int(n[1:]) for n in overrides if n[0] == '+' ]
+        elif o == "--pare":
             pare = int(a)
         elif o == "--proposals-csv":
             proposals_csv = a
@@ -397,7 +427,8 @@ def main():
         sys.stderr.write(__doc__)
         sys.exit(1)
     compose_csvs(proposals_csv, admin_review_csv, judge_evaluation_csv,
-            extra_category_file, attachments_file, attachments_dir, pare)
+            extra_category_file, attachments_file, attachments_dir, pare,
+            always_include=always_include, never_include=never_include)
 
 if __name__ == '__main__':
     main()
