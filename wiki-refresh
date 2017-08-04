@@ -220,7 +220,7 @@ csvjoin -c Review_Number                                              \
          > "${DATA_DIR}"/contact-and-turndown-tmp.csv
 # Cut the old Reason_For_Turndown column out.
 csvcut -C Reason_For_Turndown                                         \
-         "${DATA_DIR}"/"${STAGE_2_CSV}"                               \
+          "${DATA_DIR}"/"${STAGE_2_CSV}"                              \
         > "${DATA_DIR}"/"${STAGE_2_CSV}".tmp
 # Add the new Participant_Email and Reason_For_Turndown columns.
 csvjoin -c Review_Number                                              \
