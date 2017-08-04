@@ -230,7 +230,9 @@ def fix_csv(fname_in, fname_out=None, pare=None, show_table_problem=False,
             new_cell = re.sub(intertag_nbsp_re, '\\1 \\2', new_cell)
             if org_name is None:
                 org_name = new_cell
+            sys.stderr.write("DEBUG: BEFORE form_well: '%s'\n" % new_cell)
             soup = form_well(new_cell)
+            sys.stderr.write("DEBUG: AFTER form_well:  '%s'\n" % soup)
             new_cell = weaken_the_strong(str(soup))
             
             # The parsing for lists requires an asterisk at the start
@@ -265,7 +267,7 @@ def fix_csv(fname_in, fname_out=None, pare=None, show_table_problem=False,
                                  % (row_num, cell_num,
                                     header_row[cell_num - 1],
                                     org_name, new_cell))
-            if cell_num == 89:  # The pitch video cell may need fixing.
+            if cell_num == 88:  # The pitch video cell may need fixing.
                 # They all contain just an ID like "iIrGUi95ko4", not a URL
                 # like "https://www.youtube.com/watch?v=iIrGUi95ko4".
                 #

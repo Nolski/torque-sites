@@ -171,15 +171,17 @@ SANITIZER="${MACFOUND_DIR}"/fix-csv
 # we can ask -- it wouldn't be too hard to change the order.)
 STAGE_1_PREFIX="sanitized-"
 STAGE_2_PREFIX="filtered-"
+STAGE_3_PREFIX="joined-"
 
 STAGE_1_CSV="${STAGE_1_PREFIX}${RAW_CSV}"
 STAGE_2_CSV="${STAGE_2_PREFIX}${RAW_CSV}"
+STAGE_3_CSV="${STAGE_3_PREFIX}${RAW_CSV}"
 
-# Sanitize the updated spreadsheet.
+### Sanitize the updated spreadsheet.
 #
 # Use --pare to convert only 1% of the entries, to save time while testing. 
 echo "Stage 1: Sanitizing..."
-${SANITIZER} --pare=100 --reclassifications="${DATA_DIR}/geo-and-topic-revisions-Reclassify-themes-ALL-complete-(merged-assignment-docs).csv" \
+${SANITIZER} --pare=30 --reclassifications="${DATA_DIR}/geo-and-topic-revisions-Reclassify-themes-ALL-complete-(merged-assignment-docs).csv" \
              "${DATA_DIR}/${RAW_CSV}" \
              "${DATA_DIR}/${STAGE_1_CSV}"
 if [ $? -ne 0 ]; then
@@ -189,15 +191,57 @@ fi
 echo "Done with Stage 1 (sanitizing)."
 echo ""
 
-# Filter out excluded Review Numbers.
+### Filter out excluded Review Numbers.
 echo "Stage 2: Filtering excluded Review Numbers..."
 csvgrep -c 15 -f "${DATA_DIR}"/excluded-review-numbers.txt -i \
         "${DATA_DIR}"/${STAGE_1_CSV} > "${DATA_DIR}"/"${STAGE_2_CSV}"
 echo "Done with Stage 2 (filtering excluded Review Numbers)."
 echo ""
 
+
+### Add "Participant_Email", supplant "Reason_For_Turndown".
+#
+# In the latter case, the new one column will be at a slightly
+# different position than the original one, but that's okay,
+# because our col_map will be adjusted accordingly.
+echo "Stage 3: Adding some supplemental data..."
+# First gather the two new columns into a single CSV, keyed
+# by Review_Number (which is what we'll 'join' on).
+csvcut -c Review_Number,Participant_Email                             \
+          "${DATA_DIR}"/Principal-contact-join-20170716-utf8.csv      \
+        > "${DATA_DIR}"/participant-email-tmp.csv
+csvcut -c Review_Number,Reason_For_Turndown                           \
+          "${DATA_DIR}"/Reason-for-Turndown-join-2017-07-16-utf8.csv  \
+        > "${DATA_DIR}"/reason-for-turndown-tmp.csv
+# Join them into one new CSV.
+csvjoin -c Review_Number                                              \
+           "${DATA_DIR}"/participant-email-tmp.csv                    \
+           "${DATA_DIR}"/reason-for-turndown-tmp.csv                  \
+         > "${DATA_DIR}"/contact-and-turndown-tmp.csv
+# Cut the old Reason_For_Turndown column out.
+csvcut -C Reason_For_Turndown                                         \
+         "${DATA_DIR}"/"${STAGE_2_CSV}"                               \
+        > "${DATA_DIR}"/"${STAGE_2_CSV}".tmp
+# Add the new Participant_Email and Reason_For_Turndown columns.
+csvjoin -c Review_Number                                              \
+           "${DATA_DIR}"/"${STAGE_2_CSV}".tmp                         \
+           "${DATA_DIR}"/contact-and-turndown-tmp.csv                 \
+         > "${DATA_DIR}"/"${STAGE_3_CSV}"
+# Note that this changed some column numbers:
+# 
+#                            OLD       NEW
+#                            ---       ---
+#  Reason_For_Turndown        88        91
+#  Comments                   89        88
+#  Pitch Video Link           90        89
+#  Participant_Email         N/A        90
+#
+# The csv2wiki-config files have been adjusted accordingly.
+echo "Done with Stage 3 (joining CSVs to add supplemental data)."
+echo ""
+
 echo "Creating wiki..."
-${CSV2WIKI} --cat-sort=alpha -c ${CSV2WIKI_CONFIG} "${DATA_DIR}/${STAGE_2_CSV}"
+${CSV2WIKI} --cat-sort=alpha -c ${CSV2WIKI_CONFIG} "${DATA_DIR}/${STAGE_3_CSV}"
 echo "Done creating wiki."
 echo ""
 
