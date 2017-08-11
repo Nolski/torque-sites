@@ -238,6 +238,10 @@ def fix_csv(fname_in, fname_out=None, pare=None, show_table_problem=False,
             # swaps the bullets for asterisks.
             new_cell = bullets_re.sub("*", new_cell)
 
+            # Remember, the cell_nums referenced below are 0-based
+            # *and* from 100andchangeExport-all-judges.csv before it
+            # has any of the supplementary columns cut or spliced in.
+
             if cell_num == 11:  # Some entries have "Select" as the topic
                 # Column 12 (11 in 0-based) is "Primary Thematic Area",
                 # and it's usually "Affordable and Clean Energy" or
@@ -265,7 +269,7 @@ def fix_csv(fname_in, fname_out=None, pare=None, show_table_problem=False,
                                  % (row_num, cell_num,
                                     header_row[cell_num - 1],
                                     org_name, new_cell))
-            if cell_num == 88:  # The pitch video cell may need fixing.
+            if cell_num == 89:  # The pitch video cell may need fixing.
                 # They all contain just an ID like "iIrGUi95ko4", not a URL
                 # like "https://www.youtube.com/watch?v=iIrGUi95ko4".
                 #
