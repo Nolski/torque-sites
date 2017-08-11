@@ -207,13 +207,22 @@ echo ""
 echo "Stage 3: Adding some supplemental data..."
 # First gather the two new columns into a single CSV, keyed
 # by Review_Number (which is what we'll 'join' on).
+#
+# Start with participant contact. 
 csvcut -c Review_Number,Participant_Email                             \
           "${DATA_DIR}"/Principal-contact-join-20170716-utf8.csv      \
         > "${DATA_DIR}"/participant-email-tmp.csv
+# Fix the email addresses to use entities instead of literal angle brackets.
+sed -E "s/ <([^ <>]+)>/ \\&lt;\\1\\&gt;/g"                            \
+       "${DATA_DIR}"/participant-email-tmp.csv                        \
+    > "${DATA_DIR}"/participant-email-tmp.csv.tmp
+mv "${DATA_DIR}"/participant-email-tmp.csv.tmp                        \
+   "${DATA_DIR}"/participant-email-tmp.csv
+# Then isolate the reason for turndown.
 csvcut -c Review_Number,Reason_For_Turndown                           \
           "${DATA_DIR}"/Reason-for-Turndown-join-2017-07-16-utf8.csv  \
         > "${DATA_DIR}"/reason-for-turndown-tmp.csv
-# Join them into one new CSV.
+# Join those two into one new CSV.
 csvjoin -c Review_Number                                              \
            "${DATA_DIR}"/participant-email-tmp.csv                    \
            "${DATA_DIR}"/reason-for-turndown-tmp.csv                  \
