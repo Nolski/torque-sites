@@ -170,6 +170,7 @@ For the competition you're working with, run the instructions from
   Sites documentation:
   
   Get logo?
+  What should shortname be for this competition?  (implies URL slug)
   Confidentiality of competition and thus of URLs, torque-sites docs, etc?  Can their logo be in public repository?
   Okta vs local logins?
   RSS?
