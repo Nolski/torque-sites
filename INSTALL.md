@@ -166,6 +166,30 @@ $ $EDITOR simplesaml/inv/<environment>/group_vars/all/secret
 For the competition you're working with, run the instructions from
 "Installing via Ansible" and "Running the ETL pipeline" above.
 
+  Karl to incorporate this new "ask LFC" checklist into the Torque
+  Sites documentation:
+  
+  Get logo?
+  Confidentiality of competition and thus of URLs, torque-sites docs, etc?  Can their logo be in public repository?
+  Okta vs local logins?
+  RSS?
+  What groups?  What permissions for those groups, esp re attachments?
+  (Is any review or evaluation/ranking data already included?)
+  Will review spreadsheets be coming later?  How many different kinds of reviews?
+  How do we want to sort the proposals initially?
+  What do we want to have Tables of Contents on?
+  Do we know what followup information (budget tables, etc?) might be coming later?
+  Attachments?
+  TeamComments?
+  PickSome?  If so, we have some config decisions to make: naming, how many, etc?
+  SimpleFavorites?
+  enable ActivityLog
+  
+  Send them a list of columns that aren't included in the template at
+  all, afterwards.
+  
+  Which template do you want to base this new competition on, 100Change2020 or EO?
+  
 ## Post-installation checklist for new competition instances
 
 (Note: Many of the items in this checklist come from looking over
